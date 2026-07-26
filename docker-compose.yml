@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hermes
+      POSTGRES_PASSWORD: hermes
+      POSTGRES_DB: hermes
+    ports:
+      - "5432:5432"
+    volumes:
+      - hermes_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hermes -d hermes"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://hermes:hermes@postgres:5432/hermes
+      DATABASE_URL_SYNC: postgresql://hermes:hermes@postgres:5432/hermes
+      REDIS_URL: redis://redis:6379/0
+      HERMES_HOME: /data/hermes
+    ports:
+      - "8000:8000"
+    volumes:
+      - hermes_data:/data/hermes
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: celery -A hermes_api.workers.celery_app worker --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://hermes:hermes@postgres:5432/hermes
+      DATABASE_URL_SYNC: postgresql://hermes:hermes@postgres:5432/hermes
+      REDIS_URL: redis://redis:6379/0
+      HERMES_HOME: /data/hermes
+    volumes:
+      - hermes_data:/data/hermes
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: celery -A hermes_api.workers.celery_app beat --loglevel=info
+    env_file: .env
+    environment:
+      DATABASE_URL_SYNC: postgresql://hermes:hermes@postgres:5432/hermes
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  hermes_pg:
+  hermes_data:

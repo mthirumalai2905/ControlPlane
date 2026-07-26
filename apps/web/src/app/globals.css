@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+}
+
+@layer utilities {
+  .panel {
+    @apply border border-ink-700/80 bg-ink-900/70 backdrop-blur-sm;
+  }
+}
