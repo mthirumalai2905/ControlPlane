@@ -1,4 +1,4 @@
-export default function Placeholder({
+﻿export default function Placeholder({
   title,
   blurb,
 }: {
@@ -7,10 +7,10 @@ export default function Placeholder({
 }) {
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-4xl text-[#1a2218]">{title}</h1>
-      <p className="max-w-xl text-[#5c6b58]">{blurb}</p>
-      <p className="panel inline-block rounded-md px-3 py-2 font-mono text-xs text-[#8a9a84]">
-        Coming soon · Control Plane meadow theme
+      <h1 className="font-display text-4xl text-[var(--ink)]">{title}</h1>
+      <p className="max-w-xl text-[var(--muted)]">{blurb}</p>
+      <p className="panel inline-block rounded-md px-3 py-2 font-mono text-xs text-[var(--faint)]">
+        Coming soon · Control Plane
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-import type { RegistryEntry } from "@/lib/api";
+﻿import type { RegistryEntry } from "@/lib/api";
 import { CATEGORY_LABELS, type CatalogConnector } from "@/lib/catalog";
 
 export function entryMeta(entry: RegistryEntry) {
@@ -36,6 +36,12 @@ const TAG_TO_CATEGORY: Record<string, CatalogConnector["category"]> = {
   fetch: "web",
   search: "web",
   brave: "web",
+  tavily: "web",
+  firecrawl: "web",
+  searxng: "web",
+  searx: "web",
+  research: "web",
+  scrape: "web",
   browser: "web",
   scraping: "web",
   maps: "web",

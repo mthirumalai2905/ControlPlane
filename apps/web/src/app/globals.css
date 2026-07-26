@@ -1,17 +1,28 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --page-bg: #f4f6f2;
   --page-bg-soft: #e9eee6;
+  --surface: #ffffff;
+  --surface-2: #f8faf6;
   --ink: #1a2218;
   --muted: #5c6b58;
   --faint: #8a9a84;
   --line: #d5ddd0;
   --accent: #2f5d3a;
-  --glass: rgba(255, 255, 255, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.7);
+  --accent-soft: rgba(47, 93, 58, 0.12);
+  --danger: #8b3a3a;
+  --danger-soft: rgba(184, 92, 92, 0.14);
+  --warn: #8a5a18;
+  --warn-soft: rgba(196, 137, 58, 0.16);
+  --ok: #2f5d3a;
+  --ok-soft: rgba(47, 93, 58, 0.12);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(213, 221, 208, 0.9);
+  --shadow-panel: 0 1px 2px rgba(26, 34, 24, 0.04), 0 8px 24px rgba(26, 34, 24, 0.04);
+  --sidebar: #eef1eb;
   --vt-x: 28px;
   --vt-y: 100%;
   --vt-r: 150vmax;
@@ -19,15 +30,26 @@
 
 html[data-theme="dark"],
 html.dark {
-  --page-bg: #0a0e14;
-  --page-bg-soft: #121820;
-  --ink: #e8efe6;
-  --muted: #9aab9a;
-  --faint: #6b7a72;
-  --line: #2a3428;
-  --accent: #5a9a68;
-  --glass: rgba(18, 24, 32, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --page-bg: #0c1014;
+  --page-bg-soft: #151b22;
+  --surface: #171e26;
+  --surface-2: #1c2430;
+  --ink: #e7eee6;
+  --muted: #9aab9e;
+  --faint: #6f7f76;
+  --line: #2a3440;
+  --accent: #6db87a;
+  --accent-soft: rgba(109, 184, 122, 0.14);
+  --danger: #f0a0a0;
+  --danger-soft: rgba(240, 160, 160, 0.14);
+  --warn: #e0b56a;
+  --warn-soft: rgba(224, 181, 106, 0.14);
+  --ok: #6db87a;
+  --ok-soft: rgba(109, 184, 122, 0.14);
+  --glass: rgba(23, 30, 38, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03), 0 12px 32px rgba(0, 0, 0, 0.35);
+  --sidebar: #0a0e12;
 }
 
 html {
@@ -38,8 +60,8 @@ body {
   margin: 0;
   background: var(--page-bg);
   color: var(--ink);
-  letter-spacing: 0.012em;
-  line-height: 1.65;
+  letter-spacing: -0.011em;
+  line-height: 1.6;
   font-feature-settings: "ss01" on, "cv11" on;
   transition: background-color 0.01ms linear;
   -webkit-font-smoothing: antialiased;
@@ -47,24 +69,24 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Soft organic brand voice */
+/* Brand voice - Instrument Serif */
 .font-display {
   font-optical-sizing: auto;
-  font-variation-settings: "SOFT" 70, "WONK" 0.4, "opsz" 72;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  font-weight: 400;
 }
 
-/* Calm section titles */
+/* Section titles - tight tracking, medium weight */
 .font-heading {
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
 .font-mono {
-  letter-spacing: 0.04em;
-  font-feature-settings: "ss02" on;
+  letter-spacing: 0.01em;
+  font-feature-settings: "ss01" on, "zero" on;
 }
 
 .landing p {
@@ -101,7 +123,7 @@ html:has(.landing)::-webkit-scrollbar {
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* View Transitions — circular wipe from bottom-left toward top-right */
+/* View Transitions - circular wipe from bottom-left toward top-right */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -154,27 +176,170 @@ html:has(.landing)::-webkit-scrollbar {
 
 @layer utilities {
   .panel {
-    @apply border border-[var(--line)] bg-white/80 backdrop-blur-sm dark:bg-white/5;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
   }
 
   .glass-panel {
-    @apply rounded-2xl border border-[var(--glass-border)] shadow-[0_8px_32px_rgba(26,34,24,0.06)] backdrop-blur-xl;
+    border-radius: 1rem;
+    border: 1px solid var(--glass-border);
     background: var(--glass);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: blur(16px);
   }
 
   .console-input {
-    @apply w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--faint)] focus:border-[var(--accent)] dark:bg-white/5;
+    @apply w-full rounded-md border px-3 py-2 text-sm outline-none transition;
+    border-color: var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .console-input::placeholder {
+    color: var(--faint);
+  }
+
+  .console-input:focus {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    box-shadow: 0 0 0 3px var(--accent-soft);
   }
 
   .console-btn {
-    @apply rounded-full bg-[#1a2218] px-4 py-2 text-sm font-medium text-[#e8efe6] transition hover:bg-[#2a3428] disabled:opacity-40 dark:bg-[#e8efe6] dark:text-[#1a2218] dark:hover:bg-white;
+    @apply rounded-full px-4 py-2 text-sm font-medium transition disabled:opacity-40;
+    background: var(--ink);
+    color: var(--page-bg);
+  }
+
+  .console-btn:hover {
+    opacity: 0.92;
   }
 
   .console-btn-ghost {
-    @apply rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--page-bg-soft)] disabled:opacity-40 dark:bg-white/5;
+    @apply rounded-full border px-4 py-2 text-sm font-medium transition disabled:opacity-40;
+    border-color: var(--line);
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .console-btn-ghost:hover {
+    background: var(--page-bg-soft);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
   }
 
   .console-btn-accent {
-    @apply rounded-full bg-[#2f5d3a] px-4 py-2 text-sm font-medium text-[#e8efe6] transition hover:bg-[#3a7348] disabled:opacity-40 dark:bg-[#3a7348];
+    @apply rounded-full px-4 py-2 text-sm font-medium transition disabled:opacity-40;
+    background: var(--accent);
+    color: #f3faf4;
+  }
+
+  .console-btn-accent:hover {
+    filter: brightness(1.08);
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider;
+    border-color: var(--line);
+    background: var(--surface-2);
+    color: var(--muted);
+  }
+
+  .chip-accent {
+    border-color: transparent;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .chip-warn {
+    border-color: transparent;
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+
+  .dot-grid {
+    background-color: var(--page-bg);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--ink) 14%, transparent) 1px, transparent 1px);
+    background-size: 18px 18px;
+    background-position: 0 0;
+  }
+
+  html[data-theme="dark"] .dot-grid,
+  .dark .dot-grid {
+    background-image: radial-gradient(circle, rgba(231, 238, 230, 0.08) 1px, transparent 1px);
+  }
+
+  /* Lab surfaces */
+  .lab-surface {
+    background: var(--page-bg);
+    color: var(--ink);
+  }
+
+  .lab-hairline {
+    border-color: color-mix(in srgb, var(--line) 85%, transparent);
+  }
+
+  .lab-panel {
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .lab-muted {
+    color: var(--muted);
+  }
+
+  .lab-input {
+    @apply w-full rounded-md border px-3 py-2 text-sm outline-none transition;
+    border-color: var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .lab-input::placeholder {
+    color: var(--faint);
+  }
+
+  .lab-input:focus {
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .lab-btn {
+    @apply inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition disabled:opacity-40;
+    background: var(--ink);
+    color: var(--page-bg);
+  }
+
+  .lab-btn:hover {
+    opacity: 0.9;
+  }
+
+  .lab-btn-ghost {
+    @apply inline-flex h-8 items-center justify-center rounded-md border px-3 text-xs font-medium transition disabled:opacity-40;
+    border-color: var(--line);
+    background: transparent;
+    color: var(--muted);
+  }
+
+  .lab-btn-ghost:hover {
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--ink) 35%, var(--line));
+    background: var(--page-bg-soft);
+  }
+
+  .lab-seg {
+    @apply inline-flex rounded-md border p-0.5;
+    border-color: var(--line);
+    background: var(--page-bg-soft);
+  }
+
+  .lab-seg-item {
+    @apply rounded-[5px] px-2.5 py-1 text-xs font-medium transition;
+    color: var(--muted);
+  }
+
+  .lab-seg-item[data-active="true"] {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   }
 }

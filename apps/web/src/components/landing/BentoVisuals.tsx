@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -308,7 +308,7 @@ export function ComparePanel({ className }: { className?: string }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          2–3h
+          2-3h
         </motion.p>
         <p className="mt-1 text-[10px] text-[var(--muted)]">manual config grind</p>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#e0c4c4]/50">

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { FC } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
@@ -15,13 +15,13 @@ import {
 } from "@/components/landing/BentoVisuals";
 import { CircularSteps } from "@/components/landing/CircularSteps";
 import { CommandTerminal } from "@/components/landing/CommandTerminal";
+import { LandingNav } from "@/components/landing/LandingNav";
 import { LogoCloud } from "@/components/landing/LogoCloud";
 import {
   FloatingOrb,
   Parallax,
   Reveal,
   RevealText,
-  easeOut,
   stagger,
   fadeUp,
 } from "@/components/landing/motion";
@@ -79,7 +79,7 @@ function ArchitectureSection() {
           </RevealText>
           <Reveal delay={0.16}>
             <p className="mt-4 max-w-md text-[#a8b5a4]">
-              Agents orbit the core. Enterprise systems plug in. Control Plane sits in the middle —
+              Agents orbit the core. Enterprise systems plug in. Control Plane sits in the middle:
               discover, auth, monitor, heal.
             </p>
           </Reveal>
@@ -97,48 +97,7 @@ export default function LandingPage() {
 
   return (
     <div className="landing min-h-screen bg-[var(--page-bg)] text-[var(--ink)]">
-      <motion.header
-        className="absolute inset-x-0 top-0 z-20"
-        initial={reduce ? false : { opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: easeOut, delay: 0.2 }}
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <Link href="/" className="font-display text-2xl tracking-tight text-white drop-shadow-sm">
-            Control Plane
-          </Link>
-          <nav className="hidden items-center gap-1 rounded-full border border-white/25 bg-white/15 px-2 py-1 backdrop-blur-md lg:flex">
-            {[
-              ["Product", "capabilities"],
-              ["How it works", "how-it-works"],
-              ["Connectors", "connectors"],
-              ["Trust", "trust"],
-            ].map(([label, id]) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                className="rounded-full px-3 py-1.5 text-sm text-white/90 hover:bg-white/15"
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="hidden text-sm text-white/85 hover:text-white sm:inline"
-            >
-              Open console
-            </Link>
-            <Link
-              href="/registry"
-              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-[#1a2218] shadow-sm transition hover:bg-white/90 dark:bg-white/90"
-            >
-              Browse marketplace
-            </Link>
-          </div>
-        </div>
-      </motion.header>
+      <LandingNav />
 
       <SceneHero>
         <motion.p variants={heroChildVariants} className="font-display text-5xl text-white sm:text-6xl md:text-7xl">
@@ -158,7 +117,7 @@ export default function LandingPage() {
             Install, authenticate, validate, monitor, and repair enterprise connectors in minutes.
           </span>
           <span className="hidden dark:inline">
-            Night shift for your agents — connectors stay healthy while the city sleeps.
+            Night shift for your agents. Connectors stay healthy while the city sleeps.
           </span>
         </motion.p>
         <motion.div variants={heroChildVariants} className="mt-8 flex flex-wrap items-center gap-3">
@@ -204,7 +163,7 @@ export default function LandingPage() {
           </RevealText>
           <Reveal delay={0.1}>
             <p className="mt-3 max-w-xl text-[var(--muted)]">
-              Discovery through self-healing — so your agents never wait on config files.
+              Discovery through self-healing, so your agents never wait on config files.
             </p>
           </Reveal>
         </div>
@@ -213,7 +172,7 @@ export default function LandingPage() {
           <BentoGridItem
             className="md:col-span-2"
             title="Live connector fleet"
-            description="Status, latency, and repair state across every installed connector — at a glance."
+            description="Status, latency, and repair state across every installed connector, at a glance."
             header={<StatusSkeleton />}
             icon={
               <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent)]">
@@ -233,7 +192,7 @@ export default function LandingPage() {
           />
           <BentoGridItem
             title="Marketplace"
-            description="Tier-1 connectors ready to install — no doc spelunking."
+            description="Tier-1 connectors ready to install. No doc spelunking."
             header={<ConnectorMosaic />}
             icon={
               <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent)]">
@@ -309,7 +268,7 @@ export default function LandingPage() {
               </RevealText>
               <Reveal delay={0.12}>
                 <p className="mt-3 max-w-md text-[var(--muted)]">
-                  Every Tier 1 and Tier 2 connector Control Plane ships — install from the console or
+                  Every Tier 1 and Tier 2 connector Control Plane ships. Install from the console or
                   ask in natural language.
                 </p>
               </Reveal>
@@ -373,7 +332,7 @@ export default function LandingPage() {
               Talk to Control Plane
             </h2>
             <p className="mt-4 max-w-md text-[var(--muted)]">
-              Install, repair, restart, update, and fleet status — no terminal required.
+              Install, repair, restart, update, and fleet status. No terminal required.
             </p>
             <Link
               href="/activity"
@@ -390,7 +349,7 @@ export default function LandingPage() {
 
       <section id="trust" className="mx-auto max-w-6xl px-6 py-24">
         <RevealText as="h2" className="font-heading text-3xl font-medium tracking-calm sm:text-5xl">
-          Autonomous — still in control
+          Autonomous, still in control
         </RevealText>
         <motion.div
           className="mt-12 grid gap-4 md:grid-cols-3"
@@ -406,7 +365,7 @@ export default function LandingPage() {
             },
             {
               title: "Audit every step",
-              body: "Reasoning, tool, and outcome logged — the feed is the trust layer.",
+              body: "Reasoning, tool, and outcome logged. The feed is the trust layer.",
             },
             {
               title: "Fail loud, recover quiet",

@@ -30,10 +30,10 @@ export default function ActivityPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-4xl text-[#1a2218]">AI Activity Feed</h1>
-        <p className="mt-2 text-[#5c6b58]">
-          Commands: Install GitHub · Repair Slack · Restart Browser · Update GitHub · Show unhealthy
-          connectors · List installed connectors
+        <h1 className="font-display text-4xl text-[var(--ink)]">AI Activity Feed</h1>
+        <p className="mt-2 text-[var(--muted)]">
+          Commands: Install GitHub - Repair Slack - Restart Browser - Update GitHub - Show unhealthy
+          connectors - List installed connectors
         </p>
       </header>
 
@@ -47,7 +47,7 @@ export default function ActivityPage() {
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Install PostgreSQL…"
+          placeholder="Install PostgreSQL..."
           className="console-input flex-1"
         />
         <button
@@ -55,47 +55,47 @@ export default function ActivityPage() {
           disabled={chat.isPending || !message.trim()}
           className="console-btn-accent shrink-0"
         >
-          {chat.isPending ? "Working…" : "Ask Control Plane"}
+          {chat.isPending ? "Working..." : "Ask Control Plane"}
         </button>
       </form>
       {chat.isError && (
-        <p className="text-sm text-[#8b3a3a]">{(chat.error as Error).message}</p>
+        <p className="text-sm text-[var(--danger)]">{(chat.error as Error).message}</p>
       )}
       {chat.data?.summary && (
-        <p className="panel rounded-xl px-4 py-3 text-sm text-[#5c6b58]">{chat.data.summary}</p>
+        <p className="panel rounded-xl px-4 py-3 text-sm text-[var(--muted)]">{chat.data.summary}</p>
       )}
 
       <div className="space-y-4">
         {(tasks.data ?? []).map((task) => (
           <article key={task.id} className="panel rounded-xl p-5">
             <div className="flex flex-wrap justify-between gap-4">
-              <h2 className="font-medium text-[#1a2218]">{task.intent}</h2>
-              <span className="font-mono text-xs uppercase text-[#8a9a84]">{task.status}</span>
+              <h2 className="font-medium text-[var(--ink)]">{task.intent}</h2>
+              <span className="font-mono text-xs uppercase text-[var(--faint)]">{task.status}</span>
             </div>
-            {task.summary && <p className="mt-2 text-sm text-[#5c6b58]">{task.summary}</p>}
+            {task.summary && <p className="mt-2 text-sm text-[var(--muted)]">{task.summary}</p>}
             {task.installed_server_id && (
               <Link
                 href={`/servers/${task.installed_server_id}`}
-                className="mt-2 inline-block text-sm text-[#2f5d3a] hover:underline"
+                className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline"
               >
-                Open installed connector →
+                Open installed connector ->
               </Link>
             )}
-            <ol className="mt-4 space-y-3 border-l-2 border-[#2f5d3a]/30 pl-4">
+            <ol className="mt-4 space-y-3 border-l-2 border-[var(--accent)]/30 pl-4">
               {(task.steps ?? []).map((step) => (
                 <li key={step.id}>
-                  <p className="font-mono text-xs text-[#2f5d3a]">
-                    #{step.step_number} {step.tool_used ?? "reason"} · {step.outcome}
-                    {step.duration_ms != null ? ` · ${step.duration_ms}ms` : ""}
+                  <p className="font-mono text-xs text-[var(--accent)]">
+                    #{step.step_number} {step.tool_used ?? "reason"} - {step.outcome}
+                    {step.duration_ms != null ? ` - ${step.duration_ms}ms` : ""}
                   </p>
-                  <p className="mt-0.5 text-sm text-[#5c6b58]">{step.reasoning}</p>
+                  <p className="mt-0.5 text-sm text-[var(--muted)]">{step.reasoning}</p>
                 </li>
               ))}
             </ol>
           </article>
         ))}
         {(tasks.data ?? []).length === 0 && (
-          <p className="text-sm text-[#5c6b58]">No activity yet — connect a connector or ask Control Plane.</p>
+          <p className="text-sm text-[var(--muted)]">No activity yet. Connect a connector or ask Control Plane.</p>
         )}
       </div>
     </div>

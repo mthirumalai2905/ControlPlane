@@ -1,12 +1,12 @@
-export function StatusPill({ status }: { status: string }) {
+﻿export function StatusPill({ status }: { status: string }) {
   const tone =
     status === "healthy"
-      ? "bg-[#2f5d3a]/12 text-[#2f5d3a]"
+      ? "bg-[var(--ok-soft)] text-[var(--ok)]"
       : status === "degraded" || status === "pending" || status === "waiting_user"
-        ? "bg-[#c4893a]/15 text-[#8a5a18]"
+        ? "bg-[var(--warn-soft)] text-[var(--warn)]"
         : ["failed", "unhealthy"].includes(status)
-          ? "bg-[#b85c5c]/15 text-[#8b3a3a]"
-          : "bg-[#5c6b58]/12 text-[#5c6b58]";
+          ? "bg-[var(--danger-soft)] text-[var(--danger)]"
+          : "bg-[var(--page-bg-soft)] text-[var(--muted)]";
 
   return (
     <span

@@ -1,40 +1,41 @@
-import { Figtree, Fraunces, IBM_Plex_Mono, Manrope } from "next/font/google";
+﻿import { Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
 
-/** Body — open, airy, easy on the eyes */
-const sans = Figtree({
+/** Body + UI - crisp, modern product sans */
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   weight: ["400", "500", "600", "700"],
 });
 
-/** Brand / display — soft organic serif for meadow calm */
-const display = Fraunces({
+/** Brand / display - contemporary serif with presence */
+const display = Instrument_Serif({
   subsets: ["latin"],
   variable: "--font-display",
-  axes: ["SOFT", "WONK", "opsz"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
-/** Section headings — rounded modern, soothing energy */
-const heading = Manrope({
+/** Section headings - same family as body for a tighter system */
+const heading = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-heading",
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 
-/** Mono — softer than JetBrains for labels & terminals */
-const mono = IBM_Plex_Mono({
+/** Mono - sharp ops / terminal voice */
+const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   weight: ["400", "500"],
 });
 
 export const metadata = {
-  title: "Control Plane — AI Integration OS",
+  title: "Control Plane · AI Integration OS",
   description:
-    "AI-native MCP infrastructure. Discover, install, authenticate, validate, monitor, and heal Model Context Protocol servers — so you never touch a config file.",
+    "AI-native MCP infrastructure. Discover, install, authenticate, validate, monitor, and heal Model Context Protocol servers so you never touch a config file.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

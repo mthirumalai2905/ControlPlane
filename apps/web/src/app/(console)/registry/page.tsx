@@ -102,6 +102,10 @@ export default function RegistryPage() {
       }
       setNeedsSecretsMsg(null);
       setSelected(null);
+      if (selected?.slug === "tavily") {
+        router.push("/arena");
+        return;
+      }
       router.push(`/servers/${server.id}`);
     },
   });
@@ -110,18 +114,17 @@ export default function RegistryPage() {
 
   return (
     <div className="relative -mx-8 -mt-8 min-h-full px-8 py-8">
-      {/* soft meadow glass backdrop */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(47,93,58,0.07),_transparent_50%),radial-gradient(ellipse_at_bottom_left,_rgba(232,238,230,0.9),_transparent_45%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--accent-soft),transparent_52%)]" />
 
       <div className="relative mx-auto max-w-7xl space-y-8">
         <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#8a9a84]">
-              Product catalog · {catalogCount} connectors
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[var(--faint)]">
+              Product catalog - {catalogCount} connectors
             </p>
-            <h1 className="mt-1 font-display text-4xl text-[#1a2218] sm:text-5xl">Marketplace</h1>
-            <p className="mt-2 max-w-xl text-[#5c6b58]">
-              Browse the full Control Plane catalog. Connect once — authenticate, validate, and
+            <h1 className="mt-1 font-display text-4xl text-[var(--ink)] sm:text-5xl">Marketplace</h1>
+            <p className="mt-2 max-w-xl text-[var(--muted)]">
+              Browse the full Control Plane catalog. Connect once: authenticate, validate, and
               monitor automatically.
             </p>
           </div>
@@ -131,11 +134,11 @@ export default function RegistryPage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search GitHub, Slack, Postgres…"
-                className="console-input rounded-full border-white/70 bg-white/55 pl-10 backdrop-blur-md"
+                placeholder="Search connectors..."
+                className="console-input rounded-full pl-10"
               />
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-xs text-[#8a9a84]">
-                ⌕
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--faint)]">
+                /
               </span>
             </div>
           </div>
@@ -149,8 +152,8 @@ export default function RegistryPage() {
               onClick={() => setFilter(f.id)}
               className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
                 filter === f.id
-                  ? "bg-[#1a2218] text-[#e8efe6]"
-                  : "border border-white/70 bg-white/45 text-[#5c6b58] backdrop-blur-md hover:bg-white/70"
+                  ? "bg-[var(--ink)] text-[var(--page-bg)]"
+                  : "border border-[var(--line)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--page-bg-soft)] hover:text-[var(--ink)]"
               }`}
             >
               {f.label}
@@ -163,7 +166,7 @@ export default function RegistryPage() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-56 animate-pulse rounded-2xl border border-white/60 bg-white/40 backdrop-blur-md"
+                className="h-56 animate-pulse rounded-2xl border border-[var(--line)] bg-[var(--surface)]"
               />
             ))}
           </div>
@@ -211,21 +214,21 @@ export default function RegistryPage() {
         )}
 
         {!registry.isLoading && entries.length === 0 && (
-          <div className="rounded-2xl border border-white/70 bg-white/50 px-6 py-12 text-center backdrop-blur-xl">
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-6 py-12 text-center">
             {(registry.data ?? []).length === 0 ? (
-              <p className="text-sm text-[#5c6b58]">
-                Marketplace empty — run{" "}
-                <code className="font-mono text-[#2f5d3a]">python -m hermes_api.seed</code> in{" "}
+              <p className="text-sm text-[var(--muted)]">
+                Marketplace empty. Run{" "}
+                <code className="font-mono text-[var(--accent)]">python -m hermes_api.seed</code> in{" "}
                 <code className="font-mono">apps/api</code>
               </p>
             ) : (
-              <p className="text-sm text-[#5c6b58]">No connectors match this filter.</p>
+              <p className="text-sm text-[var(--muted)]">No connectors match this filter.</p>
             )}
           </div>
         )}
 
-        <section className="rounded-2xl border border-white/70 bg-white/40 p-6 backdrop-blur-xl">
-          <h2 className="font-display text-2xl text-[#1a2218]">What you get with every connect</h2>
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
+          <h2 className="font-display text-2xl text-[var(--ink)]">What you get with every connect</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               ["Discover", "Matched from the curated product catalog"],
@@ -234,8 +237,8 @@ export default function RegistryPage() {
               ["Monitor", "Latency, errors, repair, and updates"],
             ].map(([t, d]) => (
               <div key={t}>
-                <p className="font-medium text-[#1a2218]">{t}</p>
-                <p className="mt-1 text-sm text-[#5c6b58]">{d}</p>
+                <p className="font-medium text-[var(--ink)]">{t}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{d}</p>
               </div>
             ))}
           </div>

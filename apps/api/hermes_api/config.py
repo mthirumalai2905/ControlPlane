@@ -15,6 +15,16 @@ class Settings(BaseSettings):
     docker_network_prefix: str = "hermes"
     # Phase 0: allow host Docker; production should use rootless
     docker_enabled: bool = True
+    # Agent contest harness
+    tavily_api_key: str = ""
+    firecrawl_api_key: str = ""
+    # Free open-source metasearch (self-hosted). Example: http://localhost:8080
+    searxng_base_url: str = "http://localhost:8080"
+    deepseek_api_key: str = ""
+    llm_base_url: str = "https://api.deepseek.com"
+    llm_model: str = "deepseek-chat"
+    # Default research provider: tavily | firecrawl | searxng
+    search_provider: str = "tavily"
 
     @property
     def cors_origins(self) -> list[str]:

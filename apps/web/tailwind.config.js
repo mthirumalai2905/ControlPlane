@@ -36,12 +36,12 @@ module.exports = {
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],
         heading: ["var(--font-heading)", "var(--font-sans)", "sans-serif"],
-        sans: ["var(--font-sans)", "Segoe UI", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       letterSpacing: {
-        soft: "0.012em",
-        calm: "-0.02em",
+        soft: "-0.011em",
+        calm: "-0.03em",
       },
       backgroundImage: {
         "grid-faint":

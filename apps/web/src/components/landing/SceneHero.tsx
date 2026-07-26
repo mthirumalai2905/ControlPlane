@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
@@ -10,7 +10,7 @@ const childVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: easeOut } },
 };
 
-/** Full-bleed scene — morning / night with scroll parallax */
+/** Full-bleed scene - morning / night with scroll parallax */
 export function SceneHero({
   children,
   className,
@@ -78,7 +78,7 @@ export function SceneHero({
             show: { transition: { staggerChildren: 0.11, delayChildren: 0.15 } },
           }}
         >
-          {/* Clone-friendly: wrap each direct child via Children — page passes fragments of motion elements */}
+          {/* Clone-friendly: wrap each direct child via Children - page passes fragments of motion elements */}
           {children}
         </motion.div>
       </ParallaxContent>

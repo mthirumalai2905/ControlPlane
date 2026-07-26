@@ -1,4 +1,4 @@
-/** Full product catalog — mirrors apps/api/hermes_api/catalog.py for landing + fallbacks. */
+﻿/** Full product catalog - mirrors apps/api/hermes_api/catalog.py for landing + fallbacks. */
 
 export type CatalogConnector = {
   name: string;
@@ -165,6 +165,39 @@ export const PRODUCT_CATALOG: CatalogConnector[] = [
     auth: "none",
     tools: ["get_current_time", "convert_time"],
     tags: ["time", "timezone"],
+    tier: "Tier 1",
+  },
+  {
+    name: "Tavily",
+    slug: "tavily",
+    description: "AI-optimized web search for agent research contests.",
+    classification: "official",
+    category: "web",
+    auth: "api_key",
+    tools: ["tavily_search", "tavily_extract"],
+    tags: ["search", "web", "research", "tavily"],
+    tier: "Tier 2",
+  },
+  {
+    name: "Firecrawl",
+    slug: "firecrawl",
+    description: "Web search + scrape for agent contests. Toggle with Tavily to save credits.",
+    classification: "official",
+    category: "web",
+    auth: "api_key",
+    tools: ["firecrawl_search", "firecrawl_scrape"],
+    tags: ["search", "web", "scrape", "firecrawl"],
+    tier: "Tier 2",
+  },
+  {
+    name: "SearXNG",
+    slug: "searxng",
+    description: "Free open-source metasearch. Self-host locally; no API credits.",
+    classification: "community",
+    category: "web",
+    auth: "none",
+    tools: ["searxng_search"],
+    tags: ["search", "web", "free", "open-source", "searxng"],
     tier: "Tier 1",
   },
 ];
