@@ -223,3 +223,130 @@ class AuditLog(Base):
     target_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+
+
+class AgentContest(Base):
+    """Persisted contest / lab run (source of truth alongside file cache)."""
+
+    __tablename__ = "agent_contests"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=False, index=True
+    )
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="running", index=True)
+    phase: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    task: Mapped[dict] = mapped_column(JSONB, default=dict)
+    winner_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    judge: Mapped[dict] = mapped_column(JSONB, default=dict)
+    agents: Mapped[list] = mapped_column(JSONB, default=list)
+    chat: Mapped[list] = mapped_column(JSONB, default=list)
+    payload: Mapped[dict] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    runs: Mapped[list["AgentContestRun"]] = relationship(
+        back_populates="contest", cascade="all, delete-orphan"
+    )
+    events: Mapped[list["AgentContestEvent"]] = relationship(
+        back_populates="contest", cascade="all, delete-orphan", order_by="AgentContestEvent.ts"
+    )
+
+
+class AgentContestRun(Base):
+    __tablename__ = "agent_contest_runs"
+    __table_args__ = (UniqueConstraint("contest_id", "agent_id", name="uq_contest_agent"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    contest_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agent_contests.id", ondelete="CASCADE"), nullable=False
+    )
+    agent_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    agent_name: Mapped[str] = mapped_column(String(255), default="")
+    family: Mapped[str] = mapped_column(String(64), default="")
+    color: Mapped[str] = mapped_column(String(32), default="")
+    status: Mapped[str] = mapped_column(String(32), default="queued")
+    query: Mapped[str] = mapped_column(Text, default="")
+    answer: Mapped[str] = mapped_column(Text, default="")
+    browser_pages: Mapped[list] = mapped_column(JSONB, default=list)
+    records: Mapped[list] = mapped_column(JSONB, default=list)
+    record_columns: Mapped[list] = mapped_column(JSONB, default=list)
+    record_count: Mapped[int] = mapped_column(Integer, default=0)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    score_breakdown: Mapped[dict] = mapped_column(JSONB, default=dict)
+    judge_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    scoring_status: Mapped[str] = mapped_column(String(32), default="waiting")
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    feedback_applied: Mapped[list] = mapped_column(JSONB, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    contest: Mapped["AgentContest"] = relationship(back_populates="runs")
+
+
+class AgentContestEvent(Base):
+    """Append-only timeline for lab monitor (start → end)."""
+
+    __tablename__ = "agent_contest_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    contest_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agent_contests.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    agent_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    message: Mapped[str] = mapped_column(Text, default="")
+    data: Mapped[dict] = mapped_column(JSONB, default=dict)
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    contest: Mapped["AgentContest"] = relationship(back_populates="events")
+
+
+class AgentMemory(Base):
+    """Per-agent rolling stats used by the feedback loop."""
+
+    __tablename__ = "agent_memories"
+    __table_args__ = (UniqueConstraint("workspace_id", "agent_id", name="uq_workspace_agent_memory"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=False, index=True
+    )
+    agent_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    agent_name: Mapped[str] = mapped_column(String(255), default="")
+    runs: Mapped[int] = mapped_column(Integer, default=0)
+    wins: Mapped[int] = mapped_column(Integer, default=0)
+    losses: Mapped[int] = mapped_column(Integer, default=0)
+    avg_score: Mapped[float] = mapped_column(Float, default=0.0)
+    best_score: Mapped[float] = mapped_column(Float, default=0.0)
+    total_records: Mapped[int] = mapped_column(Integer, default=0)
+    downloads: Mapped[int] = mapped_column(Integer, default=0)
+    strategy_bias: Mapped[dict] = mapped_column(JSONB, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class AgentLesson(Base):
+    """Judge/human feedback distilled into reusable improvement hints."""
+
+    __tablename__ = "agent_lessons"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=False, index=True
+    )
+    agent_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    contest_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    source: Mapped[str] = mapped_column(String(64), default="judge")  # judge | human | system
+    lesson: Mapped[str] = mapped_column(Text, nullable=False)
+    weight: Mapped[float] = mapped_column(Float, default=1.0)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

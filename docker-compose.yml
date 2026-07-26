@@ -25,6 +25,18 @@ services:
       timeout: 3s
       retries: 10
 
+  # Free open-source metasearch for agent contests (JSON API enabled).
+  # Docs: https://docs.searxng.org/
+  searxng:
+    image: searxng/searxng:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./deploy/searxng/settings.yml:/etc/searxng/settings.yml:ro
+    environment:
+      SEARXNG_BASE_URL: http://localhost:8080/
+    restart: unless-stopped
+
   api:
     build:
       context: .

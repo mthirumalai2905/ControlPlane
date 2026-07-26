@@ -1,0 +1,24 @@
+# Minimal SearXNG settings: enable JSON API for Hermes contests.
+# Docs: https://docs.searxng.org/admin/settings/settings_search.html
+use_default_settings: true
+
+general:
+  instance_name: "Hermes SearXNG"
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: en
+  formats:
+    - html
+    - json
+
+server:
+  # Overridden at runtime by SEARXNG_SECRET if set
+  secret_key: "hermes-local-searxng-dev-key-change-me"
+  limiter: false
+  image_proxy: false
+
+ui:
+  static_use_hash: true

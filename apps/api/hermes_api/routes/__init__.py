@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from hermes_api.routes import incidents, servers, workspaces
+from hermes_api.routes import agents, incidents, servers, workspaces
 from hermes_api.schemas import HealthResponse
 
 api_router = APIRouter(prefix="/api/v1")
@@ -8,6 +8,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(servers.router)
 api_router.include_router(workspaces.router)
 api_router.include_router(incidents.router)
+api_router.include_router(agents.router)
 
 
 @api_router.get("/health", response_model=HealthResponse)

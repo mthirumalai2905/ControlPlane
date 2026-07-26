@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
@@ -75,7 +75,7 @@ export function MeadowFooter() {
                 Control Plane
               </Link>
               <p className="mt-2 max-w-md text-sm text-white/80">
-                AI Integration Operating System — secure, autonomous access to every enterprise
+                AI Integration Operating System. Secure, autonomous access to every enterprise
                 system.
               </p>
             </div>

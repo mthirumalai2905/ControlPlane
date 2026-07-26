@@ -61,8 +61,8 @@ export default function ServerDetailPage() {
   });
 
   const s = server.data;
-  if (server.isLoading) return <p className="text-[#8a9a84]">Loading…</p>;
-  if (!s) return <p className="text-[#8b3a3a]">Connector not found</p>;
+  if (server.isLoading) return <p className="text-[var(--faint)]">Loading...</p>;
+  if (!s) return <p className="text-[var(--danger)]">Connector not found</p>;
 
   const latest = metrics.data?.points?.at(-1);
   const authType =
@@ -80,12 +80,12 @@ export default function ServerDetailPage() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-4xl text-[#1a2218]">
+            <h1 className="font-display text-4xl text-[var(--ink)]">
               {s.registry_entry?.name ?? "Connector"}
             </h1>
             <StatusPill status={s.status} />
           </div>
-          <p className="mt-2 font-mono text-sm text-[#8a9a84]">{s.id}</p>
+          <p className="mt-2 font-mono text-sm text-[var(--faint)]">{s.id}</p>
           {s.status_reason && (
             <p className="mt-2 text-sm text-[#8a5a18]">{s.status_reason}</p>
           )}
@@ -111,7 +111,7 @@ export default function ServerDetailPage() {
             disabled={repair.isPending}
             className="console-btn-ghost"
           >
-            {repair.isPending ? "Repairing…" : "Repair"}
+            {repair.isPending ? "Repairing..." : "Repair"}
           </button>
           <button
             type="button"
@@ -119,14 +119,14 @@ export default function ServerDetailPage() {
             disabled={update.isPending}
             className="console-btn-ghost"
           >
-            {update.isPending ? "Updating…" : "Update"}
+            {update.isPending ? "Updating..." : "Update"}
           </button>
           <button
             type="button"
             onClick={() => {
               if (confirm("Delete this connector?")) remove.mutate();
             }}
-            className="rounded-full border border-[#b85c5c]/40 px-4 py-2 text-sm text-[#8b3a3a] hover:bg-[#b85c5c]/10"
+            className="rounded-full border border-[var(--danger)]/35 px-4 py-2 text-sm text-[var(--danger)] hover:bg-[var(--danger-soft)]"
           >
             Delete
           </button>
@@ -136,30 +136,30 @@ export default function ServerDetailPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Health", value: s.health_score.toFixed(0) },
-          { label: "Version", value: s.version_installed ?? "—" },
+          { label: "Version", value: s.version_installed ?? "-" },
           { label: "Authentication", value: authType },
           {
             label: "Last check",
-            value: latest?.ts ? new Date(latest.ts).toLocaleTimeString() : "—",
+            value: latest?.ts ? new Date(latest.ts).toLocaleTimeString() : "-",
           },
         ].map((m) => (
           <div key={m.label} className="panel rounded-xl p-4">
-            <p className="text-xs uppercase text-[#8a9a84]">{m.label}</p>
-            <p className="mt-1 font-display text-xl text-[#2f5d3a]">{m.value}</p>
+            <p className="text-xs uppercase text-[var(--faint)]">{m.label}</p>
+            <p className="mt-1 font-display text-xl text-[var(--accent)]">{m.value}</p>
           </div>
         ))}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
         {[
-          { label: "CPU %", value: latest?.cpu_pct?.toFixed(1) ?? "—" },
-          { label: "Memory MB", value: latest?.mem_mb?.toFixed(0) ?? "—" },
-          { label: "p50 ms", value: latest?.p50_ms?.toFixed(0) ?? "—" },
-          { label: "Errors", value: latest?.error_count ?? "—" },
+          { label: "CPU %", value: latest?.cpu_pct?.toFixed(1) ?? "-" },
+          { label: "Memory MB", value: latest?.mem_mb?.toFixed(0) ?? "-" },
+          { label: "p50 ms", value: latest?.p50_ms?.toFixed(0) ?? "-" },
+          { label: "Errors", value: latest?.error_count ?? "-" },
         ].map((m) => (
           <div key={m.label} className="panel rounded-xl p-4">
-            <p className="text-xs uppercase text-[#8a9a84]">{m.label}</p>
-            <p className="mt-1 font-display text-xl text-[#1a2218]">{m.value}</p>
+            <p className="text-xs uppercase text-[var(--faint)]">{m.label}</p>
+            <p className="mt-1 font-display text-xl text-[var(--ink)]">{m.value}</p>
           </div>
         ))}
       </div>
@@ -167,13 +167,13 @@ export default function ServerDetailPage() {
       <section className="panel rounded-xl p-5">
         <h2 className="mb-3 font-display text-xl">Tools</h2>
         {(tools.data?.tools ?? []).length === 0 ? (
-          <p className="text-sm text-[#5c6b58]">No tools recorded yet.</p>
+          <p className="text-sm text-[var(--muted)]">No tools recorded yet.</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {tools.data!.tools.map((t) => (
               <li
                 key={t.name}
-                className="rounded-full border border-[#d5ddd0] bg-[#f4f6f2] px-3 py-1 font-mono text-xs text-[#5c6b58]"
+                className="rounded-full border border-[var(--line)] bg-[var(--page-bg-soft)] px-3 py-1 font-mono text-xs text-[var(--muted)]"
               >
                 {t.name}
               </li>
@@ -184,15 +184,15 @@ export default function ServerDetailPage() {
 
       <section className="panel rounded-xl p-5">
         <h2 className="mb-3 font-display text-xl">Client config (Claude / Cursor)</h2>
-        <pre className="max-h-64 overflow-auto rounded-lg bg-[#1a2218] p-4 font-mono text-xs text-[#c5d0bc]">
+        <pre className="max-h-64 overflow-auto rounded-lg bg-[var(--surface-2)] p-4 font-mono text-xs text-[var(--muted)]">
           {JSON.stringify(clientConfig.data ?? {}, null, 2)}
         </pre>
       </section>
 
       <section className="panel rounded-xl p-5">
         <h2 className="mb-3 font-display text-xl">Logs</h2>
-        <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-[#1a2218] p-4 font-mono text-xs text-[#c5d0bc]">
-          {logs.data?.logs ?? "…"}
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-[var(--surface-2)] p-4 font-mono text-xs text-[var(--muted)]">
+          {logs.data?.logs ?? "..."}
         </pre>
       </section>
     </div>

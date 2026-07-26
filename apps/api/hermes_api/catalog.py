@@ -289,4 +289,67 @@ CATALOG: list[dict] = [
         "required_env": [],
         "tools_hint": ["get_current_time", "convert_time"],
     },
+    {
+        "name": "Tavily",
+        "slug": "tavily",
+        "description": "AI-optimized web search for agent research contests. Powers Hermes agent marketplace Phase 0.",
+        "repo_url": "https://tavily.com",
+        "package_url": "https://docs.tavily.com",
+        "author": "Tavily",
+        "classification": "official",
+        "latest_version": "latest",
+        "install_methods": {
+            "api": "https://api.tavily.com/search",
+            "npx": "npx -y tavily-mcp",
+        },
+        "tags": ["search", "web", "research", "agents", "tavily"],
+        "auth_type": "api_key",
+        "required_env": [
+            {"name": "TAVILY_API_KEY", "purpose": "Tavily API key", "secret": True}
+        ],
+        "tools_hint": ["tavily_search", "tavily_extract"],
+    },
+    {
+        "name": "Firecrawl",
+        "slug": "firecrawl",
+        "description": "Web search + scrape for agent contests. Toggle with Tavily to control token/credit spend.",
+        "repo_url": "https://www.firecrawl.dev",
+        "package_url": "https://docs.firecrawl.dev",
+        "author": "Firecrawl",
+        "classification": "official",
+        "latest_version": "latest",
+        "install_methods": {
+            "api": "https://api.firecrawl.dev/v2/search",
+            "npx": "npx -y firecrawl-mcp",
+        },
+        "tags": ["search", "web", "scrape", "research", "firecrawl", "agents"],
+        "auth_type": "api_key",
+        "required_env": [
+            {"name": "FIRECRAWL_API_KEY", "purpose": "Firecrawl API key", "secret": True}
+        ],
+        "tools_hint": ["firecrawl_search", "firecrawl_scrape"],
+    },
+    {
+        "name": "SearXNG",
+        "slug": "searxng",
+        "description": "Free open-source metasearch. Self-host via Docker; no API credits. Powers Hermes contests without paid search keys.",
+        "repo_url": "https://docs.searxng.org/",
+        "package_url": "https://docs.searxng.org/dev/search_api.html",
+        "author": "SearXNG",
+        "classification": "community",
+        "latest_version": "latest",
+        "install_methods": {
+            "api": "http://localhost:8080/search",
+        },
+        "tags": ["search", "web", "research", "open-source", "free", "searxng", "agents"],
+        "auth_type": "none",
+        "required_env": [
+            {
+                "name": "SEARXNG_BASE_URL",
+                "purpose": "SearXNG instance URL (default http://localhost:8080)",
+                "secret": False,
+            }
+        ],
+        "tools_hint": ["searxng_search"],
+    },
 ]

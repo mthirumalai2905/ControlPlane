@@ -373,6 +373,30 @@ async def install_server(
     # Start runtime
     container_name = f"hermes-{registry_entry.slug}-{str(server.id)[:8]}"
     t0 = time.perf_counter()
+
+    # API-only connectors (e.g. Tavily): secrets + config are enough
+    if methods.get("api") and not npm_pkg:
+        server.container_id = None
+        server.endpoint = methods.get("api")
+        server.status = ServerStatus.HEALTHY
+        server.health_score = 100.0
+        server.last_healthy_at = datetime.now(timezone.utc)
+        server.status_reason = "API connector ready"
+        task.status = "completed"
+        task.summary = f"{registry_entry.name} API connector connected."
+        task.completed_at = datetime.now(timezone.utc)
+        await _append_step(
+            db,
+            task,
+            step_number=nxt(),
+            reasoning="API-only connector: stored credentials and marked healthy (no container).",
+            action={"endpoint": server.endpoint},
+            tool_used="start_container",
+            result={"mode": "api", "ok": True},
+            duration_ms=int((time.perf_counter() - t0) * 1000),
+        )
+        return InstallResult(server=server, task=task)
+
     if not sandbox.docker_available():
         # Local node process fallback (no docker)
         if _which_node() and npm_pkg:

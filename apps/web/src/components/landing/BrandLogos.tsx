@@ -1,4 +1,4 @@
-/** Brand marks as inline SVGs — clean geometric marks for logo cloud & cards */
+﻿/** Brand marks as inline SVGs - clean geometric marks for logo cloud & cards */
 
 import type React from "react";
 
