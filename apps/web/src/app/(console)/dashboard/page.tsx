@@ -83,7 +83,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-xl text-[var(--ink)]">Installed connectors</h2>
             <Link href="/servers" className="text-sm text-[var(--accent)] hover:underline">
-              View all ->
+              View all →
             </Link>
           </div>
           {servers.isLoading && <p className="text-sm text-[var(--faint)]">Loading...</p>}
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-xl text-[var(--ink)]">Recent AI actions</h2>
             <Link href="/activity" className="text-sm text-[var(--accent)] hover:underline">
-              Activity feed ->
+              Activity feed →
             </Link>
           </div>
           {(tasks.data ?? []).slice(0, 8).map((t) => (

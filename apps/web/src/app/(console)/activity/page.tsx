@@ -78,7 +78,7 @@ export default function ActivityPage() {
                 href={`/servers/${task.installed_server_id}`}
                 className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline"
               >
-                Open installed connector ->
+                Open installed connector →
               </Link>
             )}
             <ol className="mt-4 space-y-3 border-l-2 border-[var(--accent)]/30 pl-4">
