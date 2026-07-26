@@ -43,7 +43,7 @@ async def get_workspace(workspace_id: UUID, db: AsyncSession = Depends(get_db)):
 
 @router.post("/chat", response_model=HermesTaskOut)
 async def chat(body: ChatRequest, db: AsyncSession = Depends(get_db)):
-    """Hermes agent loop — match intent to registry and install / list servers."""
+    """Control Plane agent loop — match intent to registry and install / list servers."""
     from hermes_api.services.hermes_agent import handle_chat_intent
 
     ws = await db.get(Workspace, body.workspace_id)

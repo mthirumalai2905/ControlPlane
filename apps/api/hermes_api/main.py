@@ -8,8 +8,8 @@ from hermes_api.routes import api_router
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
-        title="Hermes Control Plane",
-        description="AI-native MCP infrastructure platform — Phase 0 foundation",
+        title="Control Plane",
+        description="AI Integration OS — MCP infrastructure platform",
         version="0.1.0",
     )
     app.add_middleware(

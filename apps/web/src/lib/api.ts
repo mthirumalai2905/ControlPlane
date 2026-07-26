@@ -95,12 +95,40 @@ export const api = {
       }),
     restart: (id: string) =>
       request<InstalledServer>(`/servers/${id}/restart`, { method: "POST" }),
+    repair: (id: string) =>
+      request<InstalledServer>(`/servers/${id}/repair`, { method: "POST" }),
+    update: (id: string) =>
+      request<InstalledServer>(`/servers/${id}/update`, { method: "POST" }),
     remove: (id: string) => request<void>(`/servers/${id}`, { method: "DELETE" }),
     logs: (id: string) => request<{ logs: string }>(`/servers/${id}/logs`),
     tools: (id: string) =>
       request<{ tools: { name: string; verified: boolean }[] }>(`/servers/${id}/tools`),
+    metrics: (id: string, range = "1h") =>
+      request<{
+        points: {
+          ts: string | null;
+          cpu_pct: number;
+          mem_mb: number;
+          p50_ms: number;
+          p95_ms: number;
+          req_count: number;
+          error_count: number;
+        }[];
+      }>(`/servers/${id}/metrics?range=${range}`),
     clientConfig: (id: string) => request<Record<string, unknown>>(`/servers/${id}/client-config`),
     downloadUrl: (id: string) => `${API_URL}/api/v1/servers/${id}/download`,
+  },
+  metrics: {
+    summary: (workspaceId: string) =>
+      request<{
+        installed: number;
+        healthy: number;
+        failed: number;
+        avg_latency_ms: number;
+        total_requests: number;
+        total_errors: number;
+        versions: { id: string; name: string; version: string | null; status: string }[];
+      }>(`/workspace/${workspaceId}/metrics/summary`),
   },
   tasks: {
     list: (workspaceId: string) =>

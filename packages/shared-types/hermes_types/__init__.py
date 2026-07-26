@@ -1,4 +1,4 @@
-"""Shared Pydantic models for Hermes Control Plane (single source of truth)."""
+"""Shared Pydantic models for Control Plane (single source of truth)."""
 
 from hermes_types.manifest import (
     AuthType,

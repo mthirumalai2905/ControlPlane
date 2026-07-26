@@ -130,7 +130,7 @@ async def get_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
 async def restart_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
     server = await db.get(InstalledServer, server_id)
     if not server:
-        raise HTTPException(404, "Server not found")
+        raise HTTPException(404, "Connector not found")
     sandbox = ExecutionSandbox()
     if server.container_id and not server.container_id.startswith("pid:"):
         sandbox.stop_container(server.container_id)
@@ -146,11 +146,33 @@ async def restart_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
     return server
 
 
+@router.post("/servers/{server_id}/repair", response_model=InstalledServerOut)
+async def repair_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
+    from hermes_api.services.healer import repair_connector
+
+    try:
+        server, _task = await repair_connector(db, server_id=server_id)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return server
+
+
+@router.post("/servers/{server_id}/update", response_model=InstalledServerOut)
+async def update_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
+    from hermes_api.services.healer import update_connector
+
+    try:
+        server, _task = await update_connector(db, server_id=server_id)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return server
+
+
 @router.delete("/servers/{server_id}", status_code=204)
 async def delete_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
     server = await db.get(InstalledServer, server_id)
     if not server:
-        raise HTTPException(404, "Server not found")
+        raise HTTPException(404, "Connector not found")
     if server.container_id and not server.container_id.startswith("pid:"):
         ExecutionSandbox().stop_container(server.container_id)
     await db.delete(server)
@@ -160,7 +182,7 @@ async def delete_server(server_id: UUID, db: AsyncSession = Depends(get_db)):
 async def server_logs(server_id: UUID, tail: int = 200, db: AsyncSession = Depends(get_db)):
     server = await db.get(InstalledServer, server_id)
     if not server:
-        raise HTTPException(404, "Server not found")
+        raise HTTPException(404, "Connector not found")
     if not server.container_id:
         return {"logs": "[hermes] no runtime"}
     if server.container_id.startswith("pid:"):
@@ -176,21 +198,99 @@ async def server_logs(server_id: UUID, tail: int = 200, db: AsyncSession = Depen
 
 @router.get("/servers/{server_id}/metrics")
 async def server_metrics(server_id: UUID, range: str = "1h", db: AsyncSession = Depends(get_db)):
+    from hermes_api.models import MetricRaw
+    from hermes_api.services.healer import collect_connector_metrics
+
     server = await db.get(InstalledServer, server_id)
     if not server:
-        raise HTTPException(404, "Server not found")
-    return {"server_id": str(server_id), "range": range, "points": []}
+        raise HTTPException(404, "Connector not found")
+
+    # Collect a fresh sample on each request (MVP monitoring)
+    await collect_connector_metrics(db, server)
+
+    rows = list(
+        await db.scalars(
+            select(MetricRaw)
+            .where(MetricRaw.installed_server_id == server_id)
+            .order_by(MetricRaw.ts.desc())
+            .limit(60)
+        )
+    )
+    points = [
+        {
+            "ts": r.ts.isoformat() if r.ts else None,
+            "cpu_pct": r.cpu_pct,
+            "mem_mb": r.mem_mb,
+            "p50_ms": r.p50_ms,
+            "p95_ms": r.p95_ms,
+            "p99_ms": r.p99_ms,
+            "req_count": r.req_count,
+            "error_count": r.error_count,
+            "reconnect_count": r.reconnect_count,
+        }
+        for r in reversed(rows)
+    ]
+    return {"server_id": str(server_id), "range": range, "points": points}
 
 
 @router.get("/servers/{server_id}/tools")
 async def server_tools(server_id: UUID, db: AsyncSession = Depends(get_db)):
     server = await db.get(InstalledServer, server_id)
     if not server:
-        raise HTTPException(404, "Server not found")
+        raise HTTPException(404, "Connector not found")
     tools = (server.manifest or {}).get("tools") or []
     return {
         "server_id": str(server_id),
         "tools": [{"name": t, "verified": False} for t in tools],
+    }
+
+
+@router.get("/workspace/{workspace_id}/metrics/summary")
+async def workspace_metrics_summary(workspace_id: UUID, db: AsyncSession = Depends(get_db)):
+    """Dashboard aggregate widgets."""
+    from hermes_api.models import MetricRaw
+
+    servers = list(
+        await db.scalars(
+            select(InstalledServer)
+            .where(InstalledServer.workspace_id == workspace_id)
+            .options(selectinload(InstalledServer.registry_entry))
+        )
+    )
+    healthy = sum(1 for s in servers if s.status == "healthy")
+    failed = sum(1 for s in servers if s.status in ("failed", "unhealthy", "degraded"))
+    total_req = 0
+    total_err = 0
+    latencies: list[float] = []
+    for s in servers:
+        latest = await db.scalar(
+            select(MetricRaw)
+            .where(MetricRaw.installed_server_id == s.id)
+            .order_by(MetricRaw.ts.desc())
+            .limit(1)
+        )
+        if latest:
+            total_req += latest.req_count or 0
+            total_err += latest.error_count or 0
+            if latest.p50_ms:
+                latencies.append(latest.p50_ms)
+    avg_latency = round(sum(latencies) / len(latencies), 1) if latencies else 0.0
+    return {
+        "installed": len(servers),
+        "healthy": healthy,
+        "failed": failed,
+        "avg_latency_ms": avg_latency,
+        "total_requests": total_req,
+        "total_errors": total_err,
+        "versions": [
+            {
+                "id": str(s.id),
+                "name": s.registry_entry.name if s.registry_entry else s.id.hex[:8],
+                "version": s.version_installed,
+                "status": s.status,
+            }
+            for s in servers
+        ],
     }
 
 

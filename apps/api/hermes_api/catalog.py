@@ -1,6 +1,6 @@
 """Curated MCP catalog — ground truth for Phase 1+ installs (not a hardcoded adapter table).
 
-Each entry describes how Hermes discovers/installs the server. Runtime still uses the
+Each entry describes how Control Plane discovers/installs the server. Runtime still uses the
 Documentation Reader + Installation Engine; this seed is the registry feed (§4.2).
 """
 
@@ -152,7 +152,7 @@ CATALOG: list[dict] = [
         "tools_hint": ["brave_web_search", "brave_local_search"],
     },
     {
-        "name": "Puppeteer",
+        "name": "Browser Automation",
         "slug": "puppeteer",
         "description": "Browser automation and web scraping via Puppeteer.",
         "repo_url": "https://github.com/modelcontextprotocol/servers",

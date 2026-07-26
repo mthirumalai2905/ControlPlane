@@ -17,12 +17,14 @@ export default function ServersPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-4xl">Installed Servers</h1>
-        <p className="mt-2 text-mist-400">Filter by status; bulk actions arrive in Phase 2.</p>
+        <h1 className="font-display text-4xl text-[#1a2218]">Installed Connectors</h1>
+        <p className="mt-2 text-[#5c6b58]">
+          Open a connector to repair, update, download, or inspect tools and logs.
+        </p>
       </header>
-      <div className="panel rounded-lg overflow-hidden">
+      <div className="panel overflow-hidden rounded-xl">
         <table className="w-full text-sm">
-          <thead className="text-left text-mist-400 border-b border-ink-700">
+          <thead className="border-b border-[#d5ddd0] text-left text-[#8a9a84]">
             <tr>
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -32,17 +34,17 @@ export default function ServersPage() {
           </thead>
           <tbody>
             {(servers.data ?? []).map((s) => (
-              <tr key={s.id} className="border-b border-ink-700/50 hover:bg-ink-800/40">
+              <tr key={s.id} className="border-b border-[#e9eee6] hover:bg-[#e9eee6]/50">
                 <td className="px-4 py-3">
-                  <Link href={`/servers/${s.id}`} className="hover:text-accent">
+                  <Link href={`/servers/${s.id}`} className="font-medium hover:text-[#2f5d3a]">
                     {s.registry_entry?.name ?? s.id.slice(0, 8)}
                   </Link>
                 </td>
                 <td className="px-4 py-3">
                   <StatusPill status={s.status} />
                 </td>
-                <td className="px-4 py-3 font-mono">{s.health_score.toFixed(0)}</td>
-                <td className="px-4 py-3 font-mono text-mist-400">
+                <td className="px-4 py-3 font-mono text-[#5c6b58]">{s.health_score.toFixed(0)}</td>
+                <td className="px-4 py-3 font-mono text-[#8a9a84]">
                   {s.version_installed ?? "—"}
                 </td>
               </tr>
@@ -50,7 +52,7 @@ export default function ServersPage() {
           </tbody>
         </table>
         {!servers.isLoading && (servers.data ?? []).length === 0 && (
-          <p className="p-4 text-mist-400 text-sm">No installed servers.</p>
+          <p className="p-4 text-sm text-[#5c6b58]">No installed connectors.</p>
         )}
       </div>
     </div>

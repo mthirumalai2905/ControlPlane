@@ -25,14 +25,33 @@ export default function ServerDetailPage() {
     queryKey: ["server-tools", id],
     queryFn: () => api.servers.tools(id),
   });
+  const metrics = useQuery({
+    queryKey: ["server-metrics", id],
+    queryFn: () => api.servers.metrics(id),
+    refetchInterval: 10_000,
+  });
   const clientConfig = useQuery({
     queryKey: ["server-client-config", id],
     queryFn: () => api.servers.clientConfig(id),
   });
 
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ["server", id] });
+    void qc.invalidateQueries({ queryKey: ["servers"] });
+    void qc.invalidateQueries({ queryKey: ["tasks"] });
+  };
+
   const restart = useMutation({
     mutationFn: () => api.servers.restart(id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["server", id] }),
+    onSuccess: invalidate,
+  });
+  const repair = useMutation({
+    mutationFn: () => api.servers.repair(id),
+    onSuccess: invalidate,
+  });
+  const update = useMutation({
+    mutationFn: () => api.servers.update(id),
+    onSuccess: invalidate,
   });
   const remove = useMutation({
     mutationFn: () => api.servers.remove(id),
@@ -42,8 +61,13 @@ export default function ServerDetailPage() {
   });
 
   const s = server.data;
-  if (server.isLoading) return <p className="text-mist-400">Loading…</p>;
-  if (!s) return <p className="text-signal-bad">Server not found</p>;
+  if (server.isLoading) return <p className="text-[#8a9a84]">Loading…</p>;
+  if (!s) return <p className="text-[#8b3a3a]">Connector not found</p>;
+
+  const latest = metrics.data?.points?.at(-1);
+  const authType =
+    ((s.registry_entry?.install_methods as { _meta?: { auth_type?: string } })?._meta
+      ?.auth_type) || "none";
 
   const copyConfig = async () => {
     await navigator.clipboard.writeText(JSON.stringify(clientConfig.data ?? {}, null, 2));
@@ -55,75 +79,101 @@ export default function ServerDetailPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-display text-4xl">{s.registry_entry?.name ?? "Server"}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-4xl text-[#1a2218]">
+              {s.registry_entry?.name ?? "Connector"}
+            </h1>
             <StatusPill status={s.status} />
           </div>
-          <p className="mt-2 text-sm text-mist-400 font-mono">{s.id}</p>
-          {s.status_reason && <p className="mt-2 text-sm text-signal-warn">{s.status_reason}</p>}
+          <p className="mt-2 font-mono text-sm text-[#8a9a84]">{s.id}</p>
+          {s.status_reason && (
+            <p className="mt-2 text-sm text-[#8a5a18]">{s.status_reason}</p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <a
-            href={api.servers.downloadUrl(id)}
-            className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink-950"
-          >
-            Download package
+          <a href={api.servers.downloadUrl(id)} className="console-btn-accent">
+            Download
           </a>
-          <button
-            type="button"
-            onClick={() => void copyConfig()}
-            className="rounded-md border border-ink-700 px-3 py-2 text-sm hover:border-accent"
-          >
-            {copied ? "Copied!" : "Copy client config"}
+          <button type="button" onClick={() => void copyConfig()} className="console-btn-ghost">
+            {copied ? "Copied!" : "Client config"}
           </button>
           <button
             type="button"
             onClick={() => restart.mutate()}
-            className="rounded-md border border-ink-700 px-3 py-2 text-sm hover:border-accent"
+            disabled={restart.isPending}
+            className="console-btn-ghost"
           >
             Restart
           </button>
           <button
             type="button"
+            onClick={() => repair.mutate()}
+            disabled={repair.isPending}
+            className="console-btn-ghost"
+          >
+            {repair.isPending ? "Repairing…" : "Repair"}
+          </button>
+          <button
+            type="button"
+            onClick={() => update.mutate()}
+            disabled={update.isPending}
+            className="console-btn-ghost"
+          >
+            {update.isPending ? "Updating…" : "Update"}
+          </button>
+          <button
+            type="button"
             onClick={() => {
-              if (confirm("Delete this server?")) remove.mutate();
+              if (confirm("Delete this connector?")) remove.mutate();
             }}
-            className="rounded-md border border-signal-bad/40 px-3 py-2 text-sm text-signal-bad"
+            className="rounded-full border border-[#b85c5c]/40 px-4 py-2 text-sm text-[#8b3a3a] hover:bg-[#b85c5c]/10"
           >
             Delete
           </button>
         </div>
       </header>
 
-      <div className="grid sm:grid-cols-4 gap-4">
-        <div className="panel rounded-lg p-4">
-          <p className="text-xs text-mist-400 uppercase">Health</p>
-          <p className="font-display text-2xl mt-1">{s.health_score.toFixed(0)}</p>
-        </div>
-        <div className="panel rounded-lg p-4">
-          <p className="text-xs text-mist-400 uppercase">Version</p>
-          <p className="font-mono mt-1">{s.version_installed ?? "—"}</p>
-        </div>
-        <div className="panel rounded-lg p-4">
-          <p className="text-xs text-mist-400 uppercase">Endpoint</p>
-          <p className="font-mono text-xs mt-1 truncate">{s.endpoint ?? "—"}</p>
-        </div>
-        <div className="panel rounded-lg p-4">
-          <p className="text-xs text-mist-400 uppercase">Runtime</p>
-          <p className="font-mono text-xs mt-1 truncate">{s.container_id ?? "—"}</p>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: "Health", value: s.health_score.toFixed(0) },
+          { label: "Version", value: s.version_installed ?? "—" },
+          { label: "Authentication", value: authType },
+          {
+            label: "Last check",
+            value: latest?.ts ? new Date(latest.ts).toLocaleTimeString() : "—",
+          },
+        ].map((m) => (
+          <div key={m.label} className="panel rounded-xl p-4">
+            <p className="text-xs uppercase text-[#8a9a84]">{m.label}</p>
+            <p className="mt-1 font-display text-xl text-[#2f5d3a]">{m.value}</p>
+          </div>
+        ))}
       </div>
 
-      <section className="panel rounded-lg p-4">
-        <h2 className="font-display text-xl mb-3">Tools</h2>
+      <div className="grid gap-4 sm:grid-cols-4">
+        {[
+          { label: "CPU %", value: latest?.cpu_pct?.toFixed(1) ?? "—" },
+          { label: "Memory MB", value: latest?.mem_mb?.toFixed(0) ?? "—" },
+          { label: "p50 ms", value: latest?.p50_ms?.toFixed(0) ?? "—" },
+          { label: "Errors", value: latest?.error_count ?? "—" },
+        ].map((m) => (
+          <div key={m.label} className="panel rounded-xl p-4">
+            <p className="text-xs uppercase text-[#8a9a84]">{m.label}</p>
+            <p className="mt-1 font-display text-xl text-[#1a2218]">{m.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="panel rounded-xl p-5">
+        <h2 className="mb-3 font-display text-xl">Tools</h2>
         {(tools.data?.tools ?? []).length === 0 ? (
-          <p className="text-sm text-mist-400">No tools recorded yet.</p>
+          <p className="text-sm text-[#5c6b58]">No tools recorded yet.</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {tools.data!.tools.map((t) => (
               <li
                 key={t.name}
-                className="rounded-md border border-ink-700 px-2 py-1 font-mono text-xs text-mist-200"
+                className="rounded-full border border-[#d5ddd0] bg-[#f4f6f2] px-3 py-1 font-mono text-xs text-[#5c6b58]"
               >
                 {t.name}
               </li>
@@ -132,16 +182,16 @@ export default function ServerDetailPage() {
         )}
       </section>
 
-      <section className="panel rounded-lg p-4">
-        <h2 className="font-display text-xl mb-3">Client config (Claude / Cursor)</h2>
-        <pre className="font-mono text-xs text-mist-200 bg-ink-950/80 rounded-md p-3 max-h-64 overflow-auto">
+      <section className="panel rounded-xl p-5">
+        <h2 className="mb-3 font-display text-xl">Client config (Claude / Cursor)</h2>
+        <pre className="max-h-64 overflow-auto rounded-lg bg-[#1a2218] p-4 font-mono text-xs text-[#c5d0bc]">
           {JSON.stringify(clientConfig.data ?? {}, null, 2)}
         </pre>
       </section>
 
-      <section className="panel rounded-lg p-4">
-        <h2 className="font-display text-xl mb-3">Live logs</h2>
-        <pre className="font-mono text-xs text-mist-200 bg-ink-950/80 rounded-md p-3 max-h-80 overflow-auto whitespace-pre-wrap">
+      <section className="panel rounded-xl p-5">
+        <h2 className="mb-3 font-display text-xl">Logs</h2>
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-[#1a2218] p-4 font-mono text-xs text-[#c5d0bc]">
           {logs.data?.logs ?? "…"}
         </pre>
       </section>

@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <Placeholder
       title="Logs"
-      blurb="Terminal-style log viewer backed by the logs table and Redis pub/sub SSE. Phase 2."
+      blurb="Fleet-wide terminal log search will land here. Per-connector live logs are already on each connector detail page."
     />
   );
 }

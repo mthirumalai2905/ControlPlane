@@ -67,9 +67,9 @@ def zip_server_package(
         client = build_client_config(server, entry)
         zf.writestr("mcp-client-config.json", json.dumps(client, indent=2))
         zf.writestr(
-            "README-HERMES.txt",
+            "README-CONTROL-PLANE.txt",
             (
-                f"Hermes export for {entry.name} ({entry.slug})\n"
+                f"Control Plane export for {entry.name} ({entry.slug})\n"
                 f"Status: {server.status}\n"
                 f"Merge mcp-client-config.json into Claude Desktop or Cursor MCP settings.\n"
                 f"Package: {(entry.install_methods or {}).get('npm') or entry.repo_url}\n"

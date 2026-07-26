@@ -1,8 +1,4 @@
-"""Hermes agent loop — intent parsing + tool orchestration (model-agnostic).
-
-Without an LLM key, uses deterministic intent matching against the registry.
-With DEEPSEEK_API_KEY / OPENAI_API_KEY, can call a chat-completions endpoint.
-"""
+"""Control Plane agent loop — AI commands for install / repair / restart / update / list."""
 
 from __future__ import annotations
 
@@ -17,6 +13,7 @@ from sqlalchemy.orm import selectinload
 
 from hermes_api.models import HermesStep, HermesTask, InstalledServer, RegistryEntry
 from hermes_api.services.execution_sandbox import ExecutionSandbox
+from hermes_api.services.healer import repair_connector, update_connector
 from hermes_api.services.installer import install_server
 
 
@@ -29,8 +26,21 @@ class ChatResult:
 
 def _match_registry(message: str, entries: list[RegistryEntry]) -> RegistryEntry | None:
     text = message.lower()
-    # Prefer explicit slug / name hits
     scored: list[tuple[int, RegistryEntry]] = []
+    aliases = {
+        "browser": "puppeteer",
+        "browser automation": "puppeteer",
+        "postgres": "postgres",
+        "postgresql": "postgres",
+        "fs": "filesystem",
+        "files": "filesystem",
+    }
+    for alias, slug in aliases.items():
+        if alias in text:
+            for e in entries:
+                if e.slug == slug:
+                    return e
+
     for e in entries:
         score = 0
         if e.slug.lower() in text:
@@ -40,7 +50,6 @@ def _match_registry(message: str, entries: list[RegistryEntry]) -> RegistryEntry
         for tag in e.tags or []:
             if tag.lower() in text:
                 score += 3
-        # common verbs
         if re.search(rf"\b{re.escape(e.slug)}\b", text):
             score += 5
         if score:
@@ -49,6 +58,21 @@ def _match_registry(message: str, entries: list[RegistryEntry]) -> RegistryEntry
         return None
     scored.sort(key=lambda x: x[0], reverse=True)
     return scored[0][1]
+
+
+async def _find_installed(
+    db: AsyncSession, workspace_id: UUID, entry: RegistryEntry | None
+) -> InstalledServer | None:
+    if not entry:
+        return None
+    return await db.scalar(
+        select(InstalledServer)
+        .where(
+            InstalledServer.workspace_id == workspace_id,
+            InstalledServer.registry_entry_id == entry.id,
+        )
+        .options(selectinload(InstalledServer.registry_entry))
+    )
 
 
 async def handle_chat_intent(
@@ -71,7 +95,7 @@ async def handle_chat_intent(
         HermesStep(
             task_id=task.id,
             step_number=1,
-            reasoning="Received user intent; matching against MCP registry catalog.",
+            reasoning="Received user intent; matching against connector marketplace.",
             action={"message": message},
             tool_used="search_registry",
             result={"candidates": len(entries)},
@@ -79,9 +103,10 @@ async def handle_chat_intent(
         )
     )
 
-    # List / status intents
-    lower = message.lower()
-    if any(w in lower for w in ("list", "show", "what's installed", "whats installed", "status")):
+    lower = message.lower().strip()
+
+    # Unhealthy / failed connectors
+    if "unhealthy" in lower or "failed connector" in lower or "needs attention" in lower:
         servers = list(
             await db.scalars(
                 select(InstalledServer)
@@ -89,22 +114,63 @@ async def handle_chat_intent(
                 .options(selectinload(InstalledServer.registry_entry))
             )
         )
-        summary = (
-            "No servers installed yet."
-            if not servers
-            else "Installed: "
-            + ", ".join(
-                f"{(s.registry_entry.name if s.registry_entry else s.id)} [{s.status}]" for s in servers
-            )
-        )
+        bad = [s for s in servers if s.status in ("unhealthy", "failed", "degraded", "pending")]
         task.status = "completed"
-        task.summary = summary
+        task.summary = (
+            "All connectors healthy."
+            if not bad
+            else "Needs attention: "
+            + ", ".join(f"{(s.registry_entry.name if s.registry_entry else s.id)} [{s.status}]" for s in bad)
+        )
         task.completed_at = datetime.now(timezone.utc)
         db.add(
             HermesStep(
                 task_id=task.id,
                 step_number=2,
-                reasoning="Listed installed servers for the workspace.",
+                reasoning="Filtered installed connectors by unhealthy statuses.",
+                action={"type": "list_unhealthy"},
+                tool_used="get_metrics",
+                result={"count": len(bad)},
+                outcome="ok",
+            )
+        )
+        await db.flush()
+        return ChatResult(task=task)
+
+    # List installed
+    if any(
+        w in lower
+        for w in (
+            "list installed",
+            "list connectors",
+            "show installed",
+            "what's installed",
+            "whats installed",
+            "show connectors",
+        )
+    ) or lower in ("list", "status", "show all"):
+        servers = list(
+            await db.scalars(
+                select(InstalledServer)
+                .where(InstalledServer.workspace_id == workspace_id)
+                .options(selectinload(InstalledServer.registry_entry))
+            )
+        )
+        task.status = "completed"
+        task.summary = (
+            "No connectors installed yet. Try: Install GitHub"
+            if not servers
+            else "Installed connectors: "
+            + ", ".join(
+                f"{(s.registry_entry.name if s.registry_entry else s.id)} [{s.status}]" for s in servers
+            )
+        )
+        task.completed_at = datetime.now(timezone.utc)
+        db.add(
+            HermesStep(
+                task_id=task.id,
+                step_number=2,
+                reasoning="Listed installed connectors for the workspace.",
                 action={"type": "list_servers"},
                 tool_used="get_metrics",
                 result={"count": len(servers)},
@@ -115,19 +181,111 @@ async def handle_chat_intent(
         return ChatResult(task=task)
 
     entry = _match_registry(message, entries)
+    is_repair = any(w in lower for w in ("repair", "fix", "heal", "reconnect"))
+    is_restart = "restart" in lower
+    is_update = "update" in lower or "upgrade" in lower
+    is_install = any(w in lower for w in ("install", "connect", "add", "setup", "set up", "enable"))
+
+    if (is_repair or is_restart or is_update) and not entry:
+        task.status = "completed"
+        task.summary = "Which connector? Example: Repair Slack · Restart Browser · Update GitHub"
+        task.completed_at = datetime.now(timezone.utc)
+        await db.flush()
+        return ChatResult(task=task)
+
+    if is_repair and entry:
+        installed = await _find_installed(db, workspace_id, entry)
+        if not installed:
+            task.status = "completed"
+            task.summary = f"{entry.name} is not installed. Say: Install {entry.name}"
+            task.completed_at = datetime.now(timezone.utc)
+            await db.flush()
+            return ChatResult(task=task)
+        server, repair_task = await repair_connector(db, server_id=installed.id)
+        task.installed_server_id = server.id
+        task.status = repair_task.status
+        task.summary = repair_task.summary
+        task.completed_at = datetime.now(timezone.utc)
+        db.add(
+            HermesStep(
+                task_id=task.id,
+                step_number=2,
+                reasoning=f"Ran self-healing repair for {entry.name}.",
+                action={"repair_task_id": str(repair_task.id)},
+                tool_used="start_container",
+                result={"status": server.status},
+                outcome="ok",
+            )
+        )
+        await db.flush()
+        task = await db.scalar(
+            select(HermesTask).where(HermesTask.id == task.id).options(selectinload(HermesTask.steps))
+        )
+        return ChatResult(task=task, server=server)
+
+    if is_update and entry:
+        installed = await _find_installed(db, workspace_id, entry)
+        if not installed:
+            task.status = "completed"
+            task.summary = f"{entry.name} is not installed. Say: Install {entry.name}"
+            task.completed_at = datetime.now(timezone.utc)
+            await db.flush()
+            return ChatResult(task=task)
+        server, update_task = await update_connector(db, server_id=installed.id)
+        task.installed_server_id = server.id
+        task.status = update_task.status
+        task.summary = update_task.summary
+        task.completed_at = datetime.now(timezone.utc)
+        db.add(
+            HermesStep(
+                task_id=task.id,
+                step_number=2,
+                reasoning=f"Updated connector {entry.name}.",
+                action={"update_task_id": str(update_task.id)},
+                tool_used="run_install_command",
+                result={"status": server.status},
+                outcome="ok",
+            )
+        )
+        await db.flush()
+        task = await db.scalar(
+            select(HermesTask).where(HermesTask.id == task.id).options(selectinload(HermesTask.steps))
+        )
+        return ChatResult(task=task, server=server)
+
+    if is_restart and entry:
+        installed = await _find_installed(db, workspace_id, entry)
+        if not installed:
+            task.status = "completed"
+            task.summary = f"{entry.name} is not installed."
+            task.completed_at = datetime.now(timezone.utc)
+            await db.flush()
+            return ChatResult(task=task)
+        sandbox = ExecutionSandbox()
+        if installed.container_id and not str(installed.container_id).startswith("pid:"):
+            sandbox.stop_container(installed.container_id)
+        result = await install_server(
+            db, workspace_id=workspace_id, registry_entry=entry, sandbox=sandbox
+        )
+        task.installed_server_id = result.server.id
+        task.status = "completed"
+        task.summary = f"Restarted {entry.name} — status {result.server.status}."
+        task.completed_at = datetime.now(timezone.utc)
+        await db.flush()
+        return ChatResult(task=task, server=result.server)
+
     if not entry:
         task.status = "completed"
         task.summary = (
-            "I couldn't match that to a known MCP. Try: "
-            + ", ".join(e.slug for e in entries[:8])
-            + ("…" if len(entries) > 8 else "")
+            "Try: Install GitHub · Install PostgreSQL · Repair Slack · "
+            "Show unhealthy connectors · List installed connectors"
         )
         task.completed_at = datetime.now(timezone.utc)
         db.add(
             HermesStep(
                 task_id=task.id,
                 step_number=2,
-                reasoning="No registry match for intent.",
+                reasoning="No marketplace match for intent.",
                 action={"type": "clarify"},
                 tool_used="search_registry",
                 result={"matched": None},
@@ -137,16 +295,15 @@ async def handle_chat_intent(
         await db.flush()
         return ChatResult(task=task)
 
-    connect = any(w in lower for w in ("connect", "install", "add", "setup", "set up", "enable"))
-    if not connect and entry:
-        # If they just named a server, treat as connect intent
-        connect = True
+    # Default: install / connect
+    if not is_install:
+        is_install = True
 
     db.add(
         HermesStep(
             task_id=task.id,
             step_number=2,
-            reasoning=f"Matched intent to registry entry '{entry.name}' ({entry.slug}). Starting install.",
+            reasoning=f"Matched marketplace connector '{entry.name}' ({entry.slug}). Starting one-click install.",
             action={"registry_entry_id": str(entry.id), "slug": entry.slug},
             tool_used="search_registry",
             result={"slug": entry.slug, "classification": entry.classification},
@@ -162,13 +319,11 @@ async def handle_chat_intent(
         sandbox=ExecutionSandbox(),
     )
 
-    # Merge install task steps into chat task by updating summary; keep install task too
     task.installed_server_id = result.server.id
     if result.needs_secrets:
         task.status = "waiting_user"
         task.summary = (
-            f"Matched {entry.name}. Need secrets before finishing install: "
-            + ", ".join(result.needs_secrets)
+            f"Matched {entry.name}. Authenticate to finish: " + ", ".join(result.needs_secrets)
         )
     else:
         task.status = result.task.status
@@ -178,7 +333,7 @@ async def handle_chat_intent(
         HermesStep(
             task_id=task.id,
             step_number=3,
-            reasoning="Delegated to Installation Engine.",
+            reasoning="Delegated to Installation Engine (config → download → start → validate).",
             action={"install_task_id": str(result.task.id)},
             tool_used="run_install_command",
             result={
@@ -190,7 +345,6 @@ async def handle_chat_intent(
         )
     )
     await db.flush()
-    # Reload with steps
     task = await db.scalar(
         select(HermesTask).where(HermesTask.id == task.id).options(selectinload(HermesTask.steps))
     )

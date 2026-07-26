@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: ["class", '[data-theme="dark"]'],
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
@@ -34,8 +35,13 @@ module.exports = {
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],
+        heading: ["var(--font-heading)", "var(--font-sans)", "sans-serif"],
         sans: ["var(--font-sans)", "Segoe UI", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
+      letterSpacing: {
+        soft: "0.012em",
+        calm: "-0.02em",
       },
       backgroundImage: {
         "grid-faint":
@@ -43,6 +49,17 @@ module.exports = {
       },
       backgroundSize: {
         grid: "48px 48px",
+      },
+      animation: {
+        scroll:
+          "scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite",
+      },
+      keyframes: {
+        scroll: {
+          to: {
+            transform: "translate(calc(-50% - 0.5rem))",
+          },
+        },
       },
     },
   },

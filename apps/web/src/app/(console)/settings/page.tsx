@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <Placeholder
       title="Settings"
-      blurb="Workspace config and per-action-class trust levels (§9.4). Progressive autonomy ships in Phase 3."
+      blurb="Workspace config and per-action-class trust levels — progressive autonomy for install, repair, and update."
     />
   );
 }

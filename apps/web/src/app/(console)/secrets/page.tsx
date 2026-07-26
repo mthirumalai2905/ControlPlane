@@ -15,20 +15,20 @@ export default function SecretsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-4xl">Secrets</h1>
-        <p className="mt-2 text-mist-400">
+        <h1 className="font-display text-4xl text-[#1a2218]">Secrets</h1>
+        <p className="mt-2 text-[#5c6b58]">
           Metadata only — values are never returned by the API.
         </p>
       </header>
-      <ul className="panel rounded-lg divide-y divide-ink-700/80">
+      <ul className="panel divide-y divide-[#e9eee6] rounded-xl">
         {(secrets.data ?? []).map((s) => (
-          <li key={s.id} className="px-4 py-3 flex justify-between text-sm">
-            <span className="font-mono">{s.key_name}</span>
-            <span className="text-mist-400">{s.secret_type}</span>
+          <li key={s.id} className="flex justify-between px-4 py-3 text-sm">
+            <span className="font-mono text-[#1a2218]">{s.key_name}</span>
+            <span className="text-[#8a9a84]">{s.secret_type}</span>
           </li>
         ))}
         {(secrets.data ?? []).length === 0 && (
-          <li className="px-4 py-3 text-mist-400 text-sm">No secrets stored.</li>
+          <li className="px-4 py-3 text-sm text-[#5c6b58]">No secrets stored.</li>
         )}
       </ul>
     </div>

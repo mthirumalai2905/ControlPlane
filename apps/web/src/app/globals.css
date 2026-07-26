@@ -2,12 +2,167 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --page-bg: #f4f6f2;
+  --page-bg-soft: #e9eee6;
+  --ink: #1a2218;
+  --muted: #5c6b58;
+  --faint: #8a9a84;
+  --line: #d5ddd0;
+  --accent: #2f5d3a;
+  --glass: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --vt-x: 28px;
+  --vt-y: 100%;
+  --vt-r: 150vmax;
+}
+
+html[data-theme="dark"],
+html.dark {
+  --page-bg: #0a0e14;
+  --page-bg-soft: #121820;
+  --ink: #e8efe6;
+  --muted: #9aab9a;
+  --faint: #6b7a72;
+  --line: #2a3428;
+  --accent: #5a9a68;
+  --glass: rgba(18, 24, 32, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+html {
+  background: var(--page-bg);
+}
+
 body {
   margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  letter-spacing: 0.012em;
+  line-height: 1.65;
+  font-feature-settings: "ss01" on, "cv11" on;
+  transition: background-color 0.01ms linear;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Soft organic brand voice */
+.font-display {
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 70, "WONK" 0.4, "opsz" 72;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* Calm section titles */
+.font-heading {
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-weight: 500;
+}
+
+.font-mono {
+  letter-spacing: 0.04em;
+  font-feature-settings: "ss02" on;
+}
+
+.landing p {
+  line-height: 1.7;
+}
+
+/* Smooth color cascading when not mid view-transition */
+.landing {
+  transition: background-color 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing section,
+.landing header,
+.landing footer,
+.landing article,
+.landing .panel,
+.landing [class*="rounded"] {
+  transition-property: background-color, border-color, color, box-shadow, opacity, filter,
+    backdrop-filter;
+  transition-duration: 700ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* View Transitions — circular wipe from bottom-left toward top-right */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(root) {
+  animation-duration: 920ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+
+  .landing,
+  .landing section,
+  .landing header,
+  .landing footer,
+  .landing article {
+    transition: none !important;
+  }
+}
+
+/* Night sky stars */
+.stars {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 28% 32%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 44% 12%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 62% 28%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 78% 16%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 88% 40%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 18% 48%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1px 1px at 52% 44%, rgba(255, 255, 255, 0.65), transparent),
+    radial-gradient(1.5px 1.5px at 70% 52%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 36% 8%, rgba(255, 255, 255, 0.75), transparent);
+  animation: stars-twinkle 4.5s ease-in-out infinite alternate;
+}
+
+@keyframes stars-twinkle {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @layer utilities {
   .panel {
-    @apply border border-ink-700/80 bg-ink-900/70 backdrop-blur-sm;
+    @apply border border-[var(--line)] bg-white/80 backdrop-blur-sm dark:bg-white/5;
+  }
+
+  .glass-panel {
+    @apply rounded-2xl border border-[var(--glass-border)] shadow-[0_8px_32px_rgba(26,34,24,0.06)] backdrop-blur-xl;
+    background: var(--glass);
+  }
+
+  .console-input {
+    @apply w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--faint)] focus:border-[var(--accent)] dark:bg-white/5;
+  }
+
+  .console-btn {
+    @apply rounded-full bg-[#1a2218] px-4 py-2 text-sm font-medium text-[#e8efe6] transition hover:bg-[#2a3428] disabled:opacity-40 dark:bg-[#e8efe6] dark:text-[#1a2218] dark:hover:bg-white;
+  }
+
+  .console-btn-ghost {
+    @apply rounded-full border border-[var(--line)] bg-white px-4 py-2 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--accent)] hover:bg-[var(--page-bg-soft)] disabled:opacity-40 dark:bg-white/5;
+  }
+
+  .console-btn-accent {
+    @apply rounded-full bg-[#2f5d3a] px-4 py-2 text-sm font-medium text-[#e8efe6] transition hover:bg-[#3a7348] disabled:opacity-40 dark:bg-[#3a7348];
   }
 }

@@ -1,8 +1,9 @@
-# Hermes Control Plane
+# Control Plane
 
-AI-native MCP infrastructure platform — discover, install, configure, authenticate, validate, monitor, heal, and upgrade Model Context Protocol servers so a human never touches a config file.
+**Control Plane** — AI Integration Operating System for enterprises — the IT department for AI employees.
 
-> **"Vercel for MCP"**
+Onboard any supported connector in minutes: discover → install → authenticate → validate →
+monitor → repair. No manual configuration.
 
 ## Phase 0 — Foundation
 
@@ -16,7 +17,7 @@ This repo currently implements **Phase 0**: infra, schema, API skeleton, dashboa
 | Execution sandbox (Docker) | ✅ |
 | Manual install (filesystem MCP) | ✅ |
 | Celery job skeleton | ✅ |
-| Hermes agent loop / DeepSeek | Phase 1 |
+| Control Plane agent loop / DeepSeek | Phase 1 |
 
 ## Quick start
 
@@ -91,7 +92,7 @@ docker-compose.yml
 ## Roadmap
 
 - **Phase 0** — Foundation (this)  
-- **Phase 1** — Hermes agent loop, docs reader, docker install, AI Activity Feed  
+- **Phase 1** — Control Plane agent loop, docs reader, docker install, AI Activity Feed  
 - **Phase 2** — npm/pip/uv, auth types, monitoring, self-healing  
 - **Phase 3** — Trust levels, blue/green updates, discovery automation  
 - **Phase 4** — Multi-tenant hardening, observability, CLI  
